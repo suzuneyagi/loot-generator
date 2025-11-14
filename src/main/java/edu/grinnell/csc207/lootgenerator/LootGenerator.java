@@ -248,6 +248,24 @@ public class LootGenerator {
         return affixes;
     }
 
+    // public static boolean affixHelper(String baseItem, ArrayList<Affix> affix, String affixName, String affixStats, int affixValue) {
+    //     Random affixBoolean = new Random();
+    //     boolean isAffix = affixBoolean.nextBoolean();
+
+    //     if (isAffix) {
+    //         Random affixInt = new Random();
+    //         int affixIndex = affixInt.nextInt(affix.size());
+    //         Affix selectedPrefix = affix.get(affixIndex);
+    //         affixName = selectedPrefix.name + " ";
+    //         affixStats = selectedPrefix.mod1code;
+
+    //         Random preStats = new Random();
+    //         affixValue = preStats.nextInt(selectedPrefix.mod1max - selectedPrefix.mod1min + 1) + selectedPrefix.mod1min;
+    //     }
+
+    //     return isAffix;
+    // }
+
     public static void generateAffix(String baseItem) throws IOException{
         String prefixName = "";
         String suffixName = "";
@@ -258,6 +276,10 @@ public class LootGenerator {
 
         ArrayList<Affix> prefix = affixParse(DATA_SET + "/MagicPrefix.txt");
         ArrayList<Affix> suffix = affixParse(DATA_SET + "/MagicSuffix.txt");
+
+        // boolean isPrefix = affixHelper(baseItem, prefix, prefixName, prefixStats, prefixValue);
+        // boolean isSuffix = affixHelper(baseItem, suffix, suffixName, suffixStats, suffixValue);
+        // affixHelper(baseItem, suffix, suffixName, suffixStats, suffixValue);
         
         Random prefixBoolean = new Random();
         boolean isPrefix = prefixBoolean.nextBoolean();
@@ -304,21 +326,37 @@ public class LootGenerator {
     
 
     public static void main(String[] args) throws IOException{
-        String monsterName = pickMonster();
-        String treasureClass = fetchTreasureClass(monsterName);
-        String baseItem = generateBaseItem(treasureClass);
-        // String defenseValue = Integer.toString(generateBaseStats(baseItem));
-        // String prefix = "Prefix ";
-        // String suffix = " Suffix";
 
-        System.out.println("This program kills monsters and generates loot!");
-        System.out.println("Fighting " + monsterName);
-        System.out.println("You have slain " + monsterName + "!");
-        System.out.println(monsterName + " dropped: ");
-        System.out.println();
-        generateAffix(baseItem);
-        // System.out.println(prefix + baseItem + suffix);
-        //System.out.println("Defense: " + defenseValue);
+        boolean playing = true;
+
+        while (playing) {
+            String monsterName = pickMonster();
+            String treasureClass = fetchTreasureClass(monsterName);
+            String baseItem = generateBaseItem(treasureClass);
+           
+            System.out.println("This program kills monsters and generates loot!");
+            System.out.println("Fighting " + monsterName);
+            System.out.println("You have slain " + monsterName + "!");
+            System.out.println(monsterName + " dropped: ");
+            System.out.println();
+            generateAffix(baseItem);
+            System.out.println();
+
+            System.out.println("Fight again [y/n]?");
+            Scanner scanner = new Scanner (System.in);
+            String input = scanner.nextLine();
+            while (!input.equals("Y") && !input.equals("y") && !input.equals("N") && !input.equals("n")) {
+                System.out.println("Fight again [y/n]?");
+                input = scanner.nextLine();
+            }
+            if (input.equals("Y") || input.equals("y")) {
+                playing = true;
+            } else {
+                playing = false;
+                scanner.close();
+            }
+        }
+        
     }
     }
 
