@@ -13,11 +13,15 @@ public class LootGenerator {
     /** The path to the dataset (either the small or large set). */
     private static final String DATA_SET = "data/small";
 
-    public static ArrayList<Monster> MonsterParse (String filename) throws IOException {
-        //parses the monster file and returns a list of Monster objects
+    /**
+     * Parses monstats.txt and returns an ArrayList of Monster objects
+     * @return ArrayList of Monster objects
+     * @throws IOException if the file cannot be read
+     */
+    public static ArrayList<Monster> MonsterParse () throws IOException {
         //Array list of Monster objects
         ArrayList<Monster> monsters = new ArrayList<>();
-        Scanner text = new Scanner(new File(filename));
+        Scanner text = new Scanner(new File(DATA_SET + "/monstats.txt"));
 
         while (text.hasNextLine()) {
             String line = text.nextLine();
@@ -34,9 +38,10 @@ public class LootGenerator {
         return monsters;
     }
 
+    /**
+     * Monster class that holds the class, level, type, and treasure class of a monster declared in the file
+     */
     public static class Monster {
-        //holds the class, level, type, and treasure class of a monster declared in the file
-
         String monsterClass;
         String type;
         int level;
@@ -50,9 +55,14 @@ public class LootGenerator {
         }
     }
 
+    /**
+     * Picks one of the monsters at random from monstats.txt file
+     * @return a random monster's name
+     * @throws IOException if the file cannot be read
+     */
     public static String pickMonster() throws IOException{
         //picks a random monster from the list of monsters
-        ArrayList<Monster> monsters = MonsterParse(DATA_SET + "/monstats.txt");
+        ArrayList<Monster> monsters = MonsterParse();
         String monsterName;
         Random rnd = new Random();
         int index = rnd.nextInt(monsters.size()); 
@@ -60,8 +70,14 @@ public class LootGenerator {
         return monsterName;
     }
 
+    /**
+     * Fetches the treasure calss of the monster pickd randomly
+     * @param monsterName the name of the monster picked by pickMonster() method
+     * @return trasure class of the given monster
+     * @throws IOException if the file cannot be read
+     */
     public static String fetchTreasureClass(String monsterName) throws IOException{
-        ArrayList<Monster> monsters = MonsterParse(DATA_SET + "/monstats.txt");
+        ArrayList<Monster> monsters = MonsterParse();
         String treasureClass;
         for (int i = 0; i < monsters.size(); i++) {
             if (monsters.get(i).monsterClass.equals(monsterName)) {
@@ -72,11 +88,16 @@ public class LootGenerator {
         return null;
     }
 
-    public static Map<String, TC> TCParse (String filename) throws IOException {
+    /**
+     * Parses the TreasureClassEx.txt file and returns a map of TC objects
+     * @return Map<String, TC> (key: treasureClass, value: TC object)
+     * @throws IOException if the file cannot be read
+     */
+    public static Map<String, TC> TCParse() throws IOException {
         //parses the monster file and returns a list of Monster objects
         //Map (key: treasureClass, value: TC object)
         Map<String, TC> tc = new HashMap<>();
-        Scanner text = new Scanner(new File(filename));
+        Scanner text = new Scanner(new File(DATA_SET + "/TreasureClassEx.txt"));
 
         while (text.hasNextLine()) {
             String line = text.nextLine();
@@ -93,6 +114,9 @@ public class LootGenerator {
         return tc;
     }
 
+    /**
+     * TC class that holds the treasure class and its three items declared in the file
+     */
     public static class TC {
         String treasureClass;
         String item1;
@@ -107,11 +131,17 @@ public class LootGenerator {
         }
     }
    
+    /**
+     * Find the base item from the treasure class by looking up the treasure class in TreasureClassEx.txt
+     * @param treasureClass the treasure class of the monster
+     * @return the base item dropped by the monster
+     * @throws IOException  if the file cannot be read
+     */
     public static String generateBaseItem(String treasureClass) throws IOException {
-        Map<String, TC> tc = TCParse(DATA_SET + "/TreasureClassEx.txt");
+        Map<String, TC> tc = TCParse();
         String item = treasureClass;
 
-        //look up the monster's TC in TreasureClassEx.txt.
+        //look up the monster's TC in TreasureClassEx.txt until a base item is found
         while (tc.containsKey(item)) {
             TC currentTC = tc.get(item);
             Random rnd = new Random();
@@ -131,15 +161,76 @@ public class LootGenerator {
         }
         return item;
     }
+
+    /**
+     * Armor class to hold armor data read from armor.txt
+     */
+    public static class Armor {
+        String name;
+        int minac;
+        int maxac;
+
+        public Armor(String name, int minac, int maxac) {
+            this.name = name;
+            this.minac = minac;
+            this.maxac = maxac;
+        }
+    }
+
+    /**
+     * Parses the armor file and returns a map of Armor objects 
+     * @param filename the path to the armor file 
+     * @return Map<String, Armor> (key: armor name, value: Armor object)
+     * @throws IOException if the file cannot be read
+     */
+    public static Map<String, Armor> armorParse(String filename) throws IOException {
+        Map<String, Armor> armors = new HashMap<>();
+        Scanner text = new Scanner(new File(filename));
+
+        while (text.hasNextLine()) {
+            String line = text.nextLine();
+            String[] parts = line.split("\t");
+            String name = parts[0];
+            int minac = Integer.parseInt(parts[1]);
+            int maxac = Integer.parseInt(parts[2]);
+            Armor armor = new Armor(name, minac, maxac);
+            armors.put(name, armor);
+        }
+
+        text.close();
+        return armors;
+    }
+
+    /**
+     * Generates defense value ranging from minac to maxac for the given base item
+     * @param baseItem the name of the base item 
+     * @return a random defense value between minac and maxac
+     * @throws IOException if the armor file cannot be read
+     */
+    public static int generateBaseStats(String baseItem) throws IOException{
+        Map<String, Armor> armors = armorParse(DATA_SET + "/armor.txt");
+        Armor stats = armors.get(baseItem);
+        Random rnd = new Random();
+        int defenseValue = rnd.nextInt(stats.maxac - stats.minac + 1) + stats.minac;
+        return defenseValue;
+    }
     
     public static void main(String[] args) throws IOException{
         System.out.println("This program kills monsters and generates loot!");
         // TOOD: Implement me!
         String monsterName = pickMonster();
         String treasureClass = fetchTreasureClass(monsterName);
-        System.out.println("Monster name is : " + monsterName);
-        System.out.println("Monster tc is : " + treasureClass);
-        System.out.println("Dropped item is : " + generateBaseItem(treasureClass));
+        String baseItem = generateBaseItem(treasureClass);
+        String defenseValue = Integer.toString(generateBaseStats(baseItem));
+        String prefix = "Prefix ";
+        String suffix = " Suffix";
+
+        System.out.println("Fighting " + monsterName);
+        System.out.println("You have slain " + monsterName + "!");
+        System.out.println(monsterName + " dropped: ");
+        System.out.println();
+        System.out.println(prefix + baseItem + suffix);
+        System.out.println("Defense: " + defenseValue);
     }
     }
 
