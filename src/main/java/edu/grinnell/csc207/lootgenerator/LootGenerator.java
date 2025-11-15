@@ -215,6 +215,9 @@ public class LootGenerator {
         return defenseValue;
     }
 
+    /**
+     * Affix class to hold affix data read from MagicPrefix.txt and MagicSuffix.txt
+     */
     public static class Affix {
         String name;
         String mod1code;
@@ -229,6 +232,12 @@ public class LootGenerator {
         }
     }
 
+    /**
+     * Parses the MagicPrefix.txt and MagicSuffix.txt file and returns an ArrayList of Affix objects
+     * @param filename
+     * @return
+     * @throws IOException
+     */
     public static ArrayList<Affix> affixParse(String filename) throws IOException {
         ArrayList<Affix> affixes = new ArrayList<>();
         Scanner text = new Scanner(new File(filename));
@@ -248,24 +257,56 @@ public class LootGenerator {
         return affixes;
     }
 
-    // public static boolean affixHelper(String baseItem, ArrayList<Affix> affix, String affixName, String affixStats, int affixValue) {
-    //     Random affixBoolean = new Random();
-    //     boolean isAffix = affixBoolean.nextBoolean();
+    /**
+     * AffixSelected class to hold the selected affix data
+     */
+    public static class AffixSelected {
+        boolean isAffix;
+        String affixName;
+        String affixStats;
+        int affixValue;
 
-    //     if (isAffix) {
-    //         Random affixInt = new Random();
-    //         int affixIndex = affixInt.nextInt(affix.size());
-    //         Affix selectedPrefix = affix.get(affixIndex);
-    //         affixName = selectedPrefix.name + " ";
-    //         affixStats = selectedPrefix.mod1code;
+        public AffixSelected(boolean isAffix, String affixName, String affixStats, int affixValue) {
+            this.isAffix = isAffix;
+            this.affixName = affixName;
+            this.affixStats = affixStats;
+            this.affixValue = affixValue;
+        }
+    }
 
-    //         Random preStats = new Random();
-    //         affixValue = preStats.nextInt(selectedPrefix.mod1max - selectedPrefix.mod1min + 1) + selectedPrefix.mod1min;
-    //     }
+    /**
+     * Helper method for generateAffix to select an affix randomly
+     * @param baseItem baseItem found in generateBaseItem method
+     * @param affix ArrayList of Affix objects (prefix or suffix) read from the files
+     * @param affixName name of the Selected affix
+     * @param affixStats stats of the Selected affix
+     * @param affixValue value of the Selected affix
+     * @return AffixSelected object
+     */
+    public static AffixSelected affixHelper(String baseItem, ArrayList<Affix> affix, String affixName, String affixStats, int affixValue) {
+        Random affixBoolean = new Random();
+        boolean isAffix = affixBoolean.nextBoolean();
 
-    //     return isAffix;
-    // }
+        if (isAffix) {
+            Random affixInt = new Random();
+            int affixIndex = affixInt.nextInt(affix.size());
+            Affix selectedPrefix = affix.get(affixIndex);
+            affixName = selectedPrefix.name;
+            affixStats = selectedPrefix.mod1code;
 
+            Random preStats = new Random();
+            affixValue = preStats.nextInt(selectedPrefix.mod1max - selectedPrefix.mod1min + 1) + selectedPrefix.mod1min;
+        }
+
+        AffixSelected affixSelected = new AffixSelected(isAffix, affixName, affixStats, affixValue);
+        return affixSelected;
+    }
+
+    /**
+     * Generates affixes
+     * @param baseItem name of the base item found in generateBaseItem method
+     * @throws IOException if the affix files cannot be read
+     */
     public static void generateAffix(String baseItem) throws IOException{
         String prefixName = "";
         String suffixName = "";
@@ -277,54 +318,35 @@ public class LootGenerator {
         ArrayList<Affix> prefix = affixParse(DATA_SET + "/MagicPrefix.txt");
         ArrayList<Affix> suffix = affixParse(DATA_SET + "/MagicSuffix.txt");
 
-        // boolean isPrefix = affixHelper(baseItem, prefix, prefixName, prefixStats, prefixValue);
-        // boolean isSuffix = affixHelper(baseItem, suffix, suffixName, suffixStats, suffixValue);
-        // affixHelper(baseItem, suffix, suffixName, suffixStats, suffixValue);
-        
-        Random prefixBoolean = new Random();
-        boolean isPrefix = prefixBoolean.nextBoolean();
-
-        Random suffixBoolean = new Random();
-        boolean isSuffix = suffixBoolean.nextBoolean();
-
-        if (isPrefix) {
-            Random prefixInt = new Random();
-            int prefixIndex = prefixInt.nextInt(prefix.size());
-            Affix selectedPrefix = prefix.get(prefixIndex);
-            prefixName = selectedPrefix.name + " ";
-            prefixStats = selectedPrefix.mod1code;
-
-            Random preStats = new Random();
-            prefixValue = preStats.nextInt(selectedPrefix.mod1max - selectedPrefix.mod1min + 1) + selectedPrefix.mod1min;
-        }
-
-        if (isSuffix) {
-            Random suffixInt = new Random();
-            int suffixIndex = suffixInt.nextInt(suffix.size());
-            Affix selectedSuffix = suffix.get(suffixIndex);
-            suffixName = " " + selectedSuffix.name;
-            suffixStats = selectedSuffix.mod1code;
-
-            Random sufStats = new Random();
-            suffixValue = sufStats.nextInt(selectedSuffix.mod1max - selectedSuffix.mod1min + 1) + selectedSuffix.mod1min;
-        }
+        AffixSelected prefixSelected = affixHelper(baseItem, prefix, prefixName, prefixStats, prefixValue);
+        AffixSelected suffixSelected = affixHelper(baseItem, suffix, suffixName, suffixStats, suffixValue);
 
         String defenseValue = Integer.toString(generateBaseStats(baseItem));
 
-        System.out.println(prefixName + baseItem + suffixName);
-        System.out.println("Defense: " + defenseValue);
-
-        if (isPrefix) {
-            System.out.println(prefixValue + " " + prefixStats);
-        }
-
-        if (isSuffix) {
-            System.out.println(suffixValue + " " + suffixStats);
+        if (prefixSelected.isAffix) {
+            System.out.println(prefixSelected.affixName + " " + baseItem + " " + suffixSelected.affixName);
+            System.out.println("Defense: " + defenseValue);
+            System.out.println(prefixSelected.affixValue + " " + prefixSelected.affixStats);
+            if (suffixSelected.isAffix) {
+                System.out.println(suffixSelected.affixValue + " " + suffixSelected.affixStats);
+            }
+        } else if (suffixSelected.isAffix) {
+            System.out.println(baseItem + " " + suffixSelected.affixName);
+            System.out.println("Defense: " + defenseValue);
+            System.out.println(suffixSelected.affixValue + " " + suffixSelected.affixStats);
+        } else {
+            System.out.println(baseItem);
+            System.out.println("Defense: " + defenseValue);
         }
 
     }
     
 
+    /** 
+     * Main method to run the loot generator program
+     * @param args command line arguments
+     * @throws IOException if any of the files cannot be read
+     */
     public static void main(String[] args) throws IOException{
 
         boolean playing = true;
@@ -351,8 +373,10 @@ public class LootGenerator {
             }
             if (input.equals("Y") || input.equals("y")) {
                 playing = true;
+                System.out.println();
             } else {
                 playing = false;
+                System.out.println();
                 scanner.close();
             }
         }
