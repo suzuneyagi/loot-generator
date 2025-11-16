@@ -1,12 +1,13 @@
 # Project: Loot Generator
 
-Authors: (_TODO: fill in names here!_)
+Authors: Suzune Yagi
 
 ## Resources
 
-*   (_TODO: fill in resources here!_)
-*   ...
-*   ...
+*   https://docs.oracle.com/javase/8/docs/api/java/util/HashMap.html
+*   https://osera.cs.grinnell.edu/ttap/data-structures-labs/loot-generator.html
+*   Visual Studio Code 
+*   Oracle, OpenJDK compiler
 
 ## Revision Log
 
